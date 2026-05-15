@@ -1,0 +1,24 @@
+[
+  {
+    "ticket_id": "INC-1001",
+    "subject": "User locked out after MFA reset",
+    "description": "Employee cannot sign in after replacing phone. Needs Duo/MFA reset.",
+    "requester": "jane.doe@example.com",
+    "affected_users": 1
+  },
+  {
+    "ticket_id": "INC-1002",
+    "subject": "Possible ransomware on shared drive",
+    "description": "Multiple users report encrypted files and suspicious ransom notes from 10.1.5.23.",
+    "requester": "security.dispatch@example.com",
+    "affected_users": 42
+  },
+  {
+    "ticket_id": "INC-1003",
+    "subject": "VPN outage for finance users",
+    "description": "VPN is down and finance team cannot work remotely.",
+    "requester": "finance.manager@example.com",
+    "affected_users": 18
+  }
+]
+

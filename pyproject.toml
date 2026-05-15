@@ -1,0 +1,13 @@
+[project]
+name = "ai-helpdesk-triage-engine"
+version = "0.1.0"
+description = "Explainable IT helpdesk ticket triage engine with JSON input and output."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+helpdesk-triage = "ai_helpdesk_triage.cli:main"
+
+[tool.setuptools]
+packages = ["ai_helpdesk_triage"]
+
