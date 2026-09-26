@@ -44,10 +44,10 @@ python -m unittest discover
   "priority": "P1",
   "routing_group": "Security Operations",
   "sla_minutes": 15,
-  "confidence": 0.94,
-  "signals": ["ransomware", "multiple_users", "security"],
+  "confidence": 0.90,
+  "signals": ["security", "multiple_users", "security_incident", "ransomware"],
   "redactions": ["email", "ip_address"],
-  "suggested_response": "We have classified this as a P1 security incident..."
+  "suggested_response": "We have classified this as a P1 security ticket and routed it to Security Operations. Please avoid sharing passwords or sensitive data in the ticket. A technician will review ticket INC-1002 within the SLA window."
 }
 ```
 
@@ -71,7 +71,15 @@ ai-helpdesk-triage-engine/
 
 The engine deliberately separates classification logic from CLI handling. That keeps the core triage contract reusable for a future REST API, queue consumer, ServiceNow export, or LLM-backed classifier.
 
-The output is explainable: each decision includes the signals that drove routing and priority. This is important for IT operations because analysts need to trust and override automation.
+Keyword matching uses whole words and phrases with explicit common plural forms.
+Any security keyword takes routing precedence; ransomware, breach and compromised
+indicators receive P1. Other security keywords receive at least P2. This is a
+conservative keyword policy: negation such as `no ransomware` still escalates.
+`confidence` is a heuristic score, not a probability. The `redactions` field only
+reports detected data types and does not sanitize the original ticket.
+
+See [Armando Gomez's contribution and reproduction notes](docs/CONTRIBUTION.md)
+for regression examples, verification results and limitations.
 
 ## Verification
 

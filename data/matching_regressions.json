@@ -1,0 +1,5 @@
+[
+  {"ticket_id": "SYNTHETIC-DOWNLOAD", "subject": "download", "description": ""},
+  {"ticket_id": "SYNTHETIC-SECURITY", "subject": "ransomware", "description": "laptop desktop printer keyboard monitor slow crash windows"},
+  {"ticket_id": "SYNTHETIC-OUTAGE", "subject": "WI-FI down", "description": "Network outage"}
+]

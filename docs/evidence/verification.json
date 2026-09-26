@@ -1,0 +1,55 @@
+{
+  "repository": "ai-helpdesk-triage-engine",
+  "title": "Accurate keyword boundaries",
+  "change": "Download no longer becomes a P1 outage; security indicators retain their route.",
+  "generated_at": "2026-09-26T16:10:56.939216+00:00",
+  "source": "Contribution working tree; synthetic inputs only",
+  "test_command": "python -m unittest discover",
+  "tests": 7,
+  "test_output": ".......\n----------------------------------------------------------------------\nRan 7 tests in 0.021s\n\nOK",
+  "example_command": "python -m ai_helpdesk_triage data/matching_regressions.json --pretty",
+  "example": [
+    {
+      "ticket_id": "SYNTHETIC-DOWNLOAD",
+      "category": "general",
+      "priority": "P4",
+      "routing_group": "Service Desk",
+      "sla_minutes": 1440,
+      "confidence": 0.59,
+      "signals": [
+        "needs_review"
+      ],
+      "redactions": [],
+      "suggested_response": "We have classified this as a P4 general ticket and routed it to Service Desk. Please avoid sharing passwords or sensitive data in the ticket. A technician will review ticket SYNTHETIC-DOWNLOAD within the SLA window."
+    },
+    {
+      "ticket_id": "SYNTHETIC-SECURITY",
+      "category": "security",
+      "priority": "P1",
+      "routing_group": "Security Operations",
+      "sla_minutes": 15,
+      "confidence": 0.75,
+      "signals": [
+        "security",
+        "security_incident",
+        "ransomware"
+      ],
+      "redactions": [],
+      "suggested_response": "We have classified this as a P1 security ticket and routed it to Security Operations. Please avoid sharing passwords or sensitive data in the ticket. A technician will review ticket SYNTHETIC-SECURITY within the SLA window."
+    },
+    {
+      "ticket_id": "SYNTHETIC-OUTAGE",
+      "category": "network",
+      "priority": "P1",
+      "routing_group": "Network Operations",
+      "sla_minutes": 15,
+      "confidence": 0.79,
+      "signals": [
+        "network",
+        "service_impact"
+      ],
+      "redactions": [],
+      "suggested_response": "We have classified this as a P1 network ticket and routed it to Network Operations. Please avoid sharing passwords or sensitive data in the ticket. A technician will review ticket SYNTHETIC-OUTAGE within the SLA window."
+    }
+  ]
+}

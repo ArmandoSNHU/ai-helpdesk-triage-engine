@@ -152,11 +152,33 @@ def _coerce_ticket(ticket: dict | Ticket) -> Ticket:
     )
 
 
+# Explicit forms avoid broad stemming (for example, "down" must not match "download").
+PLURAL_FORMS = {
+    word: word + "s"
+    for word in (
+        "password", "login", "account", "reset", "laptop", "desktop", "printer",
+        "keyboard", "monitor", "network", "packet", "application", "app", "license",
+        "install", "update", "browser", "tenant", "cloud", "badge", "door",
+        "access card", "camera", "room", "building", "outage", "executive", "director",
+    )
+}
+PLURAL_FORMS.update({"crash": "crashes", "breach": "breaches", "virus": "viruses", "chief": "chiefs"})
+
+
+def _matches(text: str, term: str) -> bool:
+    forms = (term, PLURAL_FORMS[term]) if term in PLURAL_FORMS else (term,)
+    patterns = [r"\s+".join(re.escape(part) for part in form.split()) for form in forms]
+    return re.search(r"(?<!\w)(?:" + "|".join(patterns) + r")(?!\w)", text, re.IGNORECASE) is not None
+
+
 def _classify_category(text: str) -> tuple[str, int]:
     scores = {
-        category: sum(1 for keyword in keywords if keyword in text)
+        category: sum(1 for keyword in keywords if _matches(text, keyword))
         for category, keywords in CATEGORY_KEYWORDS.items()
     }
+    # Any bounded security indicator takes precedence over competing category counts.
+    if scores["security"]:
+        return "security", scores["security"]
     category, hits = max(scores.items(), key=lambda item: item[1])
     if hits == 0:
         return "general", 0
@@ -169,25 +191,25 @@ def _detect_signals(text: str, affected_users: int, category: str) -> list[str]:
         signals.append(category)
     if affected_users >= 25:
         signals.append("multiple_users")
-    if any(term in text for term in ("down", "outage", "unavailable", "cannot work")):
+    if any(_matches(text, term) for term in ("down", "outage", "unavailable", "cannot work")):
         signals.append("service_impact")
-    if any(term in text for term in ("ransomware", "breach", "compromised", "phishing")):
+    if any(_matches(text, term) for term in ("ransomware", "breach", "compromised", "phishing")):
         signals.append("security_incident")
-    if any(term in text for term in ("ceo", "chief", "executive", "director")):
+    if any(_matches(text, term) for term in ("ceo", "chief", "executive", "director")):
         signals.append("executive_request")
-    if "ransomware" in text:
+    if _matches(text, "ransomware"):
         signals.append("ransomware")
     return signals or ["needs_review"]
 
 
 def _priority(text: str, affected_users: int, category: str) -> str:
-    if category == "security" and any(term in text for term in ("ransomware", "breach", "compromised")):
+    if category == "security" and any(_matches(text, term) for term in ("ransomware", "breach", "compromised")):
         return "P1"
-    if affected_users >= 50 or "outage" in text or "down" in text:
+    if affected_users >= 50 or _matches(text, "outage") or _matches(text, "down"):
         return "P1"
-    if category == "security" or affected_users >= 10 or "executive" in text:
+    if category == "security" or affected_users >= 10 or _matches(text, "executive"):
         return "P2"
-    if any(term in text for term in ("cannot work", "blocked", "urgent")):
+    if any(_matches(text, term) for term in ("cannot work", "blocked", "urgent")):
         return "P2"
     if category in {"identity", "network", "cloud"}:
         return "P3"
