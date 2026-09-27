@@ -25,7 +25,8 @@ Any matched security category keyword now routes to Security Operations,
 regardless of other category counts. Ransomware, breach/breaches and compromised
 receive P1; other security keywords receive at least P2. Existing impact rules
 can still escalate them to P1. Non-security score ties retain category declaration
-order. The JSON fields and SLA targets are unchanged.
+order. The matching change retained JSON fields and SLA targets. The September 27
+output hardening below changes the meaning of `ticket_id`.
 
 ## Reproduce and verify
 
@@ -82,3 +83,44 @@ accuracy. The legacy `redactions` field reports detected data types; it does not
 sanitize input or remove sensitive values. Detection is incomplete and the input
 file remains unchanged. No production integration or real ticket processing was
 performed. Implementation evidence was collected before publication; the contribution branch carries the reviewable patch.
+
+## 2026-09-27: minimize sensitive output and validate input
+
+Author: Armando Gomez.
+
+The original detector only returned labels, while `ticket_id` was copied into
+both the result and suggested response. A caller could accidentally place an
+email, personal name or credential in that field and expose it downstream.
+The correction omits raw IDs from response text and replaces returned IDs with
+HMAC-SHA256 references using a randomly generated process-local key. Equal IDs
+produce equal references within a process; references change after restart.
+There is no plain deterministic hash that can be guessed offline without the key.
+Raw subject, description and requester values remain excluded entirely.
+
+This deliberately avoids adding free-text output with uncertain redaction.
+`redactions` remains a legacy detection-label field, with ID inspection and
+SSN-shaped/Authorization credential patterns added. It is best effort, not
+proof that a ticket is sanitized. Pseudonymous references and classification
+labels are still contextual information; original files and process memory need
+normal access controls. No disk ID map or key is created. References are not
+authentication tokens and are not stable cross-process integration IDs.
+
+Compatibility: consumers must correlate batch results by their input order.
+Types and field names remain unchanged, but raw ID joins must be updated.
+The suggested response no longer includes any ticket reference. See README's
+input/output contract for exact size and type limits. Invalid supported input
+raises generic ValueError; CLI validation/file errors return exit 2 and
+`{"error": "Invalid ticket input."}` on stderr with empty stdout.
+
+Verification with `D:\TechOpsagent\.venv\Scripts\python.exe -m unittest discover`:
+
+- Security baseline: `Ran 7 tests` / `OK`.
+- Initial new regressions before implementation: `Ran 14 tests` / `FAILED (failures=25, errors=4)`.
+- Final suite including missing-file and UTF-8 coverage: `Ran 15 tests` / `OK`.
+- Synthetic matching CLI exits 0, preserving general/P4, security/P1 and network/P1 decisions with opaque references.
+- `git diff --check` exits 0 (Windows line-ending warnings only).
+
+All regression values are synthetic. No live tickets, network calls, model
+downloads, runtime startup or new dependencies are required. This update adds
+input validation, data minimization and error-contract testing to the original
+TechOps contribution. No remote CI result is asserted for these local changes.
